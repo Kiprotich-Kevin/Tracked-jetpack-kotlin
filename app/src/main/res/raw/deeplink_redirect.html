@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Open My App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript">
+    function openApp() {
+      var now = new Date().getTime();
+      setTimeout(function () {
+        // If the app is not opened after 1.5 seconds, show the download message
+        if (new Date().getTime() - now < 2000) {
+          document.getElementById('fallback').style.display = 'block';
+        }
+      }, 1500);
+
+      // Try to open the app (replace with your actual deep link)
+      window.location = "myapp://open";
+    }
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+    #fallback { display: none; margin-top: 30px; }
+    a.button { display: inline-block; padding: 10px 20px; background: #1976D2; color: #fff; border-radius: 5px; text-decoration: none; }
+  </style>
+</head>
+<body onload="openApp()">
+  <h2>Opening the app...</h2>
+  <div id="fallback">
+    <p>It looks like you don't have the app installed.</p>
+    <a class="button" href="https://play.google.com/store/apps/details?id=com.yourcompany.yourapp" target="_blank">Download the app</a>
+  </div>
+</body>
+</html> 

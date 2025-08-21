@@ -1,0 +1,24 @@
+# Changes Log
+
+## Camera Image Capture & FileProvider Integration
+- Added FileProvider entry to AndroidManifest.xml for secure file sharing with camera intent.
+- Created res/xml/file_paths.xml to define external-files-path for images.
+- Updated image picker logic (ImagePicker.kt) to use FileProvider.getUriForFile for generating content URIs instead of file:// URIs.
+- Ensured camera intent uses content:// URI, resolving FileUriExposedException crash.
+
+## ClientCheckoutDialog UI Improvements
+- Made the file input box look and behave like an input field.
+- Clicking the file input triggers the camera to take a picture.
+- After taking a picture, the file name is displayed in the input.
+- Logic for camera and file handling is separated into ImagePicker.kt for maintainability and future extension (e.g., compression, progress display).
+- The 'No file chosen' text now matches the border color of the input box for visual consistency.
+
+## General
+- All changes are compatible with future enhancements, such as image compression and progress/status display. 
+
+## Image Compression Logic & UI Status
+- Added ImageCompressor.kt with a suspend function to compress images to less than 200KB, maintaining visual quality.
+- Integrated compression logic into the image picker: after capturing an image, compression runs automatically in a coroutine.
+- Compression status (Idle, Compressing, Success, Failed) is exposed to the UI and shown in the file input box in ClientCheckoutDialog.
+- Status text color changes based on state: blue (idle), orange (compressing), green (success), red (failure).
+- Compression logic is modular and ready for future enhancements, such as progress display or upload integration. 

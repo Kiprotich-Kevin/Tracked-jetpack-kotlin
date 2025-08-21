@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Tracked" parent="android:Theme.Material.Light.NoActionBar" />
+
+
+    <style name="SplashTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Tracked</item>
+
+        <!-- Fallbacks for API < 31 -->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowNoTitle">true</item>
+<!--        <item name="android:windowFullscreen">true</item>-->
+    </style>
+
+</resources>
