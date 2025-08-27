@@ -46,28 +46,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
-
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun SwipeToCheckIn(
     isCheckedIn: Boolean,
     isLoading: Boolean = false,
+    showSuccess: Boolean = false, // <-- new param driven by ViewModel (uiState)
     modifier: Modifier = Modifier,
     onSwipeComplete: () -> Unit
 ) {
-    var isSuccess by remember { mutableStateOf(false) }
     val swipeOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
-
     val haptic = LocalHapticFeedback.current
 
     val checkInColor = Color(0xFF0084FF)
     val checkOutColor = Color(0xFF006FD6) // darker, deeper blue
 
     val buttonColor = if (isCheckedIn) checkOutColor else checkInColor
-
     val buttonText = if (isCheckedIn) "Swipe to check out" else "Swipe to check in"
-
 
     BoxWithConstraints(
         modifier = modifier
@@ -99,8 +95,8 @@ fun SwipeToCheckIn(
         val paddingPx = with(density) { 10.dp.toPx() }
         val endLimit = maxWidthPx - thumbSizePx - paddingPx
 
-        // For text offset
-        val textRowMaxOffset = endLimit - with(density) { 90.dp.toPx() } // 90dp is a safe margin for text width
+        // Text follows the swipe but stops before it overlaps thumb
+        val textRowMaxOffset = endLimit - with(density) { 90.dp.toPx() }
         val textOffset = swipeOffset.value.coerceAtMost(textRowMaxOffset).toInt()
 
         when {
@@ -113,7 +109,7 @@ fun SwipeToCheckIn(
                     color = buttonColor
                 )
             }
-            isSuccess -> {
+            showSuccess -> {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Success",
@@ -146,7 +142,8 @@ fun SwipeToCheckIn(
             }
         }
 
-        if (!isLoading && !isSuccess) {
+        // Thumb only shows when not loading or already success
+        if (!isLoading && !showSuccess) {
             Box(
                 modifier = Modifier
                     .offset { IntOffset(swipeOffset.value.toInt(), 0) }
@@ -167,11 +164,7 @@ fun SwipeToCheckIn(
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     swipeOffset.snapTo(0f)
                                     onSwipeComplete()
-                                    isSuccess = true
-                                    kotlinx.coroutines.delay(1500)
-                                    isSuccess = false
                                 } else {
-                                    // Snap back to start if not swiped far enough
                                     swipeOffset.animateTo(0f)
                                 }
                             }
@@ -182,7 +175,7 @@ fun SwipeToCheckIn(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Fingerprint",
+                    contentDescription = "Swipe Thumb",
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )

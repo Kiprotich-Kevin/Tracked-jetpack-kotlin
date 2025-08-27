@@ -569,12 +569,27 @@ fun DashboardScreen(
                     // Removed .height(64.dp) to allow content to dictate height
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
+//                SwipeToCheckIn(
+//                    isCheckedIn = status.isCheckedIn,
+//                    isLoading = uiState is CheckInUiState.GettingLocation,
+//                    onSwipeComplete = { checkInViewModel.swipeAction() }
+//                )
+//                SwipeToCheckIn(
+//                    isCheckedIn = status.isCheckedIn,
+//                    isLoading = uiState is CheckInUiState.GettingLocation || uiState is CheckInUiState.Success,
+//                    showSuccess = uiState is CheckInUiState.Success,
+//                    onSwipeComplete = { checkInViewModel.swipeAction() }
+//                )
+
                 SwipeToCheckIn(
                     isCheckedIn = status.isCheckedIn,
-                    isLoading = uiState is CheckInUiState.GettingLocation,
+                    isLoading = uiState is CheckInUiState.GettingLocation ||
+                            uiState is CheckInUiState.ShowClientDialog ||
+                            uiState is CheckInUiState.ShowCheckoutDialog,
                     onSwipeComplete = { checkInViewModel.swipeAction() }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+
             }
         }
     }
@@ -824,7 +839,7 @@ fun DashboardScreen(
             onStopService = {}   // provide actual implementation if needed
         )
     }
-    
+
     // Tasks Coming Soon Bottom Sheet
     if (showTasksComingSoonSheet) {
         ModalBottomSheet(
@@ -870,7 +885,7 @@ fun DashboardScreen(
             }
         }
     }
-    
+
     // Attendance Status Bottom Sheet
     if (showAttendanceSheet) {
         ModalBottomSheet(
@@ -885,20 +900,20 @@ fun DashboardScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                
+
                 // Login status text
                 val userName = SharedPrefsUtils.getUserNameFromPrefs(context)
                 val formattedName = userName.split(" ")
                     .joinToString(" ") { it.lowercase().replaceFirstChar { char -> char.uppercaseChar() } }
                 val currentTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"))
-                
+
                 Text(
                     "You are logged in as",
                     fontSize = 16.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
                 )
-                
+
                 Text(
                     formattedName,
                     fontSize = 20.sp,
@@ -906,18 +921,18 @@ fun DashboardScreen(
                     color = Color(0xFF003366),
                     textAlign = TextAlign.Center
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 Text(
                     "at $currentTime",
                     fontSize = 14.sp,
                     color = Color.Gray,
                     textAlign = TextAlign.Center
                 )
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 // Status indicator (assuming logged in successfully)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -937,9 +952,9 @@ fun DashboardScreen(
                         fontWeight = FontWeight.Medium
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Logout button
                 Button(
                     onClick = {
@@ -958,12 +973,12 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Log Out", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 }
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
-    
+
     // Logout Confirmation Dialog
     if (showLogoutConfirmationDialog) {
         Dialog(

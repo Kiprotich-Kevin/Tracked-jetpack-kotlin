@@ -22,15 +22,17 @@ fun ClientSearchDialog(
     clients: List<Client>,
     onCancel: () -> Unit,
     onSubmit: () -> Unit,
-    onClientSelected: (Client) -> Unit // new callback
+    onClientSelected: (Client) -> Unit
 ) {
-    var search by remember { mutableStateOf("") }
+    var rawInput by remember { mutableStateOf("") } // Raw input with leading zeros
+    var search by remember { mutableStateOf("") } // Sanitized input for filtering
     val filteredClients = clients.filter {
         it.name.contains(search, ignoreCase = true) ||
-        it.idno.toString().contains(search) ||
-        it.contact.toString().contains(search)
+                it.idno.toString().contains(search, ignoreCase = true) ||
+                it.contact.toString().contains(search, ignoreCase = true)
     }
     var selectedClient by remember { mutableStateOf<Client?>(null) }
+
     Surface(
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         tonalElevation = 8.dp,
@@ -53,8 +55,11 @@ fun ClientSearchDialog(
                         .height(52.dp)
                 ) {
                     OutlinedTextField(
-                        value = search,
-                        onValueChange = { search = it },
+                        value = rawInput,
+                        onValueChange = { input ->
+                            rawInput = input // Display raw input including leading zeros
+                            search = input.trimStart(' ', '0') // Sanitize for search
+                        },
                         placeholder = {
                             Text(
                                 "Enter number or id..",
@@ -62,15 +67,13 @@ fun ClientSearchDialog(
                                 modifier = Modifier.fillMaxWidth()
                             )
                         },
-                        modifier = Modifier
-                            .fillMaxSize(),
-
+                        modifier = Modifier.fillMaxSize(),
                         textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
                         singleLine = true,
-                        shape = RoundedCornerShape(24.dp),
-
+                        shape = RoundedCornerShape(24.dp)
                     )
-                    if (search.isEmpty()) {
+
+                    if (rawInput.isEmpty()) { // Use rawInput for icon visibility
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search Icon",
@@ -83,7 +86,7 @@ fun ClientSearchDialog(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = { /* Search action */ },
+                    onClick = { search = rawInput.trimStart(' ', '0') }, // Optional explicit search
                     modifier = Modifier.height(52.dp)
                 ) { Text("Search") }
             }
@@ -93,12 +96,27 @@ fun ClientSearchDialog(
                 Modifier
                     .fillMaxWidth()
                     .background(Color(0xFFF0F0F0))
-                    .padding(vertical = 8.dp), // Add vertical padding
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Name", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), textAlign = TextAlign.Start)
-                Text("Contact", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), textAlign = TextAlign.Start)
-                Text("ID No", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), textAlign = TextAlign.Start)
+                Text(
+                    "Name",
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    textAlign = TextAlign.Start
+                )
+                Text(
+                    "Contact",
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    textAlign = TextAlign.Start
+                )
+                Text(
+                    "ID No",
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    textAlign = TextAlign.Start
+                )
             }
             LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
                 itemsIndexed(filteredClients) { index, client ->
@@ -106,7 +124,11 @@ fun ClientSearchDialog(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .background(if (isSelected) Color(0xFFB3E5FC) else if (index % 2 == 0) Color(0xFFFFFFFF) else Color(0xFFF8F8F8))
+                            .background(
+                                if (isSelected) Color(0xFFB3E5FC)
+                                else if (index % 2 == 0) Color(0xFFFFFFFF)
+                                else Color(0xFFF8F8F8)
+                            )
                             .padding(vertical = 8.dp)
                             .clickable {
                                 selectedClient = client
@@ -114,9 +136,24 @@ fun ClientSearchDialog(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(client.name, fontSize = 14.sp, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), textAlign = TextAlign.Start)
-                        Text(client.contact.toString(), fontSize = 14.sp, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), textAlign = TextAlign.Start)
-                        Text(client.idno.toString(), fontSize = 14.sp, modifier = Modifier.weight(1f).padding(horizontal = 8.dp), textAlign = TextAlign.Start)
+                        Text(
+                            client.name,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                            textAlign = TextAlign.Start
+                        )
+                        Text(
+                            client.contact.toString().padStart(10, '0'), // Add leading zeros
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                            textAlign = TextAlign.Start
+                        )
+                        Text(
+                            client.idno.toString(),
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                            textAlign = TextAlign.Start
+                        )
                     }
                 }
             }
@@ -131,4 +168,4 @@ fun ClientSearchDialog(
             }
         }
     }
-} 
+}

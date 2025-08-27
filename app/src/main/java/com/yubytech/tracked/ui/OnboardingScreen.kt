@@ -196,7 +196,7 @@ fun OnboardingScreen(
 
                     Text(
                         "Device Setup",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1976D2)
                     )
@@ -235,7 +235,7 @@ fun OnboardingScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     // Camera Permission Card
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -286,9 +286,9 @@ fun OnboardingScreen(
                             }
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     if (hasCameraPermission) {
                         Button(
                             onClick = { onPermissionsRequested(true) },
@@ -359,9 +359,9 @@ fun OnboardingScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     // Show which permissions are missing
-                    
+
                     if (!hasCameraPermission) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -403,9 +403,9 @@ fun OnboardingScreen(
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                     }
-                    
+
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -416,7 +416,7 @@ fun OnboardingScreen(
                         Text("Try Again")
                         }
                         Button(
-                            onClick = { 
+                            onClick = {
                                 // Restart the app
                                 onRestartApp()
                             },

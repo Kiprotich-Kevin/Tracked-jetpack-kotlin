@@ -10,6 +10,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.ConnectivityManager
@@ -1036,15 +1037,46 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+
+
+        @RequiresApi(Build.VERSION_CODES.N)
+        fun getSecurePrefs(context: Context): SharedPreferences {
+            val prefsName = "secure_prefs"
+            val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+
+            return try {
+                EncryptedSharedPreferences.create(
+                    prefsName,
+                    masterKeyAlias,
+                    context,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            } catch (e: Exception) {
+                // Happens if key is lost (e.g., uninstall/reinstall)
+                context.deleteSharedPreferences(prefsName)
+
+                EncryptedSharedPreferences.create(
+                    prefsName,
+                    masterKeyAlias,
+                    context,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            }
+        }
         // Re-calculate onboarding state on resume
         val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        val sharedPreferences = EncryptedSharedPreferences.create(
-            "secure_prefs",
-            masterKeyAlias,
-            this,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+
+        val sharedPreferences = getSecurePrefs(this)
+
+//        val sharedPreferences = EncryptedSharedPreferences.create(
+//            "secure_prefs",
+//            masterKeyAlias,
+//            this,
+//            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+//            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+//        )
         val savedJwt = sharedPreferences.getString("jwt", null)
         val savedUserId = sharedPreferences.getInt("user_id", -1)
         val savedJwtExpiresAt = sharedPreferences.getLong("jwt_expires_at", 0L)
