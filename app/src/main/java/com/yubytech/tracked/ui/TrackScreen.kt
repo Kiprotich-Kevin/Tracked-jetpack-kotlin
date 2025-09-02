@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -203,6 +204,26 @@ fun TrackScreen(
                     }
                 }
             }
+            // Refresh button
+            IconButton(
+                onClick = {
+                    if (com.yubytech.tracked.ui.isInternetAvailable(context)) {
+                        // 1. Force WebView reload
+                        webViewKey++
+
+                        // 2. Refresh user list
+                        viewModel.fetchUsers(SharedPrefsUtils.getUserIdFromPrefs(context), context)
+
+                        // Optional: clear any previous error
+                        viewModel.error = null
+                    } else {
+                        viewModel.error = "No Internet connection."
+                    }
+                }
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF1976D2))
+            }
+
             // Outlined date label with icon inside
             Row(
                 verticalAlignment = Alignment.CenterVertically,

@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -268,6 +269,19 @@ fun TimelineScreen(
                     }
                 }
             }
+            // icon to refresh
+            IconButton(onClick = {
+                if (isInternetAvailable(context)) {
+                    viewModel.fetchUsers(SharedPrefsUtils.getUserIdFromPrefs(context), context)
+                    viewModel.fetchTimeline(selectedUser.id, context)
+                } else {
+                    viewModel.error = "No Internet connection."
+                }
+            }) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF1976D2))
+            }
+
+
             // Outlined date label with icon inside
             Row(
                 verticalAlignment = Alignment.CenterVertically,
