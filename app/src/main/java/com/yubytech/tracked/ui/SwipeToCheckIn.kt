@@ -46,14 +46,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.consumeAllChanges
+
+
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun SwipeToCheckIn(
     isCheckedIn: Boolean,
     isLoading: Boolean = false,
-    showSuccess: Boolean = false, // <-- new param driven by ViewModel (uiState)
+    showSuccess: Boolean = false,
     modifier: Modifier = Modifier,
-    onSwipeComplete: () -> Unit
+    onSwipeComplete: () -> Unit,
+    onReset: () -> Unit // <-- new
 ) {
     val swipeOffset = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
@@ -180,6 +185,7 @@ fun SwipeToCheckIn(
                     modifier = Modifier.size(24.dp)
                 )
             }
+
         }
     }
 }

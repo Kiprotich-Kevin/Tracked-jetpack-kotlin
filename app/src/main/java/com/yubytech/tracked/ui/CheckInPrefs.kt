@@ -42,6 +42,17 @@ object CheckInPrefs {
             .apply()
     }
 
+
+    fun clearCheckIn(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putBoolean(KEY_IS_CHECKED_IN, false)
+            .remove(KEY_CHECKOUT_LAT)
+            .remove(KEY_CHECKOUT_LON)
+            .apply()
+    }
+
+
     fun clear(context: Context) {
         prefs(context).edit().clear().apply()
     }

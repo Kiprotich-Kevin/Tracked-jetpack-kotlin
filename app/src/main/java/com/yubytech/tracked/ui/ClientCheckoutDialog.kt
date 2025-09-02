@@ -61,7 +61,11 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yubytech.tracked.ui.CheckInViewModel
 
 
 fun createImageFile(context: Context): File {
@@ -74,8 +78,11 @@ fun createImageFile(context: Context): File {
     )
 }
 
+
+
 @Composable
 fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<File>) -> Unit) {
+    val checkInViewModel: CheckInViewModel = viewModel()
     var interaction by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("D+1") }
     val types = listOf("D0", "D1", "D7", "D14", "D21", "Due Date", "DD+7", "DD+14", "Compliance Report", "Collection Agent", "Management Report", "Customer Visit", )
@@ -130,19 +137,54 @@ fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<F
         }
     }
 
-
-
     val coroutineScope = rememberCoroutineScope()
     var isPosting by remember { mutableStateOf(false) }
     var postError by remember { mutableStateOf<String?>(null) }
-
+    // NEW STATE FOR CANCEL FLOW
+    var isCancelling by remember { mutableStateOf(false) }
     Surface(
         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
         tonalElevation = 8.dp,
         modifier = Modifier.fillMaxWidth(),
         color = Color.White // Explicitly set background to white
     ) {
-        if (isPosting) {
+        if (isCancelling) {
+                // Show spinner + message for 3s
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(3000)
+
+                    // ✅ Clear check-in (your existing logic)
+                    CheckInPrefs.clearCheckIn(context)
+
+                    // ✅ Refresh UI if you need (call your loadStatus() here if defined)
+                    // loadStatus()
+                    // just call the same reset logic
+                    checkInViewModel.clearUiState()
+
+                    // ✅ Reload status so the button state updates
+                    checkInViewModel.loadStatus()
+                    // ✅ Close dialog
+                    onCancel()
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(color = Color.Blue)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Cancelling your check-in...",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+
+            else if (isPosting) {
             // Show only spinner and message when submitting
             Column(
                 modifier = Modifier
@@ -162,8 +204,45 @@ fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<F
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            Text("Client Checkout", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(16.dp))
+//            Text("Client Checkout", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left button (white, same size as cancel)
+                    Button(
+                        onClick = {},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.White // makes text invisible
+                        )
+                    ) {
+                        Text("Cancel") // same label ensures same width
+                    }
+
+                    // Centered text
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Client Checkout", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+
+                    // Right button (actual Cancel)
+                    Button(onClick = {
+                        isCancelling = true
+//                        CheckInPrefs.clearCheckIn(context)
+//                        loadStatus() // refresh state after clearing
+                        //refresh the ui
+                        //close the dialog
+                        //
+                         }) {
+                        Text("Cancel")
+                    }
+                }
+
+
+                Spacer(modifier = Modifier.height(16.dp))
             // Header row
             Row(
                 Modifier.fillMaxWidth(),
@@ -278,7 +357,7 @@ fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<F
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    OutlinedButton(onClick = onCancel) { Text("Cancel") }
+                    OutlinedButton(onClick = onCancel) { Text("Close") }
                     Spacer(modifier = Modifier.width(10.dp))
                     Button(
                         onClick = {
@@ -300,7 +379,7 @@ fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<F
                                 val reqFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                                 MultipartBody.Part.createFormData("images[]", file.name, reqFile)
                             }
-                            
+
                             // If no JWT token, try the original method directly
                             val testJwtToken = SharedPrefsUtils.getJwtToken(context)
                             if (testJwtToken == null) {
@@ -351,6 +430,6 @@ fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<F
                 }
             }
         }
-        }     
+        }
     }
-} 
+}

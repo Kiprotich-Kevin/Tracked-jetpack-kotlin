@@ -218,4 +218,5 @@ class CheckInViewModel(app: Application) : AndroidViewModel(app) {
     fun retryLocation(isCheckIn: Boolean) {
         if (isCheckIn) getLocationForCheckIn() else getLocationForCheckout()
     }
+
 } 

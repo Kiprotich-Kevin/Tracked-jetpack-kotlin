@@ -192,6 +192,8 @@ fun DashboardScreen(
     var showLocationFailedSheet by remember { mutableStateOf(false) }
     var hasReturnedFromSettings by remember { mutableStateOf(false) }
 
+
+
     // React to ViewModel UI state
     LaunchedEffect(uiState) {
         when (uiState) {
@@ -332,6 +334,12 @@ fun DashboardScreen(
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
+                uiState is CheckInUiState.GettingLocation -> {
+                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+
                 viewModel.error != null -> {
                     Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("No Internet connection.", color = Color.Gray)
@@ -586,7 +594,8 @@ fun DashboardScreen(
                     isLoading = uiState is CheckInUiState.GettingLocation ||
                             uiState is CheckInUiState.ShowClientDialog ||
                             uiState is CheckInUiState.ShowCheckoutDialog,
-                    onSwipeComplete = { checkInViewModel.swipeAction() }
+                    onSwipeComplete = { checkInViewModel.swipeAction() },
+                    onReset = { checkInViewModel.clearAll() }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
