@@ -61,6 +61,7 @@ import com.yubytech.tracked.ui.BottomSheetMessage
 import com.yubytech.tracked.ui.OnboardingScreen
 import com.yubytech.tracked.ui.PermissionUtils
 import com.yubytech.tracked.ui.SharedPrefsUtils
+import com.yubytech.tracked.ui.screens.TaskScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -794,8 +795,10 @@ class MainActivity : ComponentActivity() {
                                 DashboardScreen(
                                     onActivityClick = { navController.navigate("activity") },
                                     onTrackingClick = { navController.navigate("tracking") },
-                                    onAttendanceClick = { navController.navigate("attendance") },
+//                                    onAttendanceClick = { navController.navigate("attendance") },
+                                    onTasksClick = { navController.navigate("tasks") },
                                     onTimelineClick = { navController.navigate("activity") },
+                                    onPairingClick = { navController.navigate("pair") },
                                     onLogout = {
                                         // Reset retry count for new logout attempt
                                         logoutRetryCount = 0
@@ -825,6 +828,21 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
+                            composable("pair") {
+                                BackHandler {
+                                    if (navController.currentBackStackEntry?.destination?.route != "dashboard") {
+                                        navController.popBackStack()
+                                    }
+                                }
+                                com.yubytech.tracked.ui.screens.PairScreen(
+                                    userName = "John Doe(You)",
+                                    onBackClick = {
+                                        if (navController.currentBackStackEntry?.destination?.route != "dashboard") {
+                                            navController.popBackStack()
+                                        }
+                                    }
+                                )
+                            }
                             composable("activity") {
                                 BackHandler {
                                     if (navController.currentBackStackEntry?.destination?.route != "dashboard") {
@@ -849,6 +867,21 @@ class MainActivity : ComponentActivity() {
                                 TrackScreen(
                                     userName = "John Doe(You)",
                                     onBackClick = { 
+                                        if (navController.currentBackStackEntry?.destination?.route != "dashboard") {
+                                            navController.popBackStack()
+                                        }
+                                    }
+                                )
+                            }
+                            composable("tasks") {
+                                BackHandler {
+                                    if (navController.currentBackStackEntry?.destination?.route != "dashboard") {
+                                        navController.popBackStack()
+                                    }
+                                }
+                                TaskScreen(
+                                    userName = "John Doe(You)",
+                                    onBackClick = {
                                         if (navController.currentBackStackEntry?.destination?.route != "dashboard") {
                                             navController.popBackStack()
                                         }

@@ -27,8 +27,15 @@ import com.yubytech.tracked.local.LocationEvent
 import com.yubytech.tracked.local.LocationEventSyncManager
 import com.yubytech.tracked.ui.SharedPrefsUtils
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executors
@@ -45,6 +52,7 @@ class LocationLoggingService : Service() {
     private val client = OkHttpClient()
     private val executor = Executors.newSingleThreadExecutor()
     private val endpointUrl = "https://api.brisk-credit.net/Tracked_v1/log_and_snap.php" // TODO: Replace with your actual endpoint
+    private val heartbeatEndpoint = "https://api.brisk-credit.com/endpoints/heartbeat.php"
     private val kalman = KalmanLatLng()
     private var lastLat: Double? = null
     private var lastLng: Double? = null
@@ -55,6 +63,7 @@ class LocationLoggingService : Service() {
     private val WAITING_THRESHOLD_METERS = 20.0
     private val WAITING_THRESHOLD_MILLIS = 5 * 60 * 1000L // 5 minutes
     private var waitingEventPosted = false
+    private var heartbeatJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -77,6 +86,7 @@ class LocationLoggingService : Service() {
         Log.i("LocationLoggingService", "Service start command received")
         startForegroundServiceWithNotification()
         startLocationUpdates()
+        startHeartbeat()
         return START_STICKY
     }
 
@@ -235,6 +245,7 @@ class LocationLoggingService : Service() {
         super.onDestroy()
         fusedLocationClient.removeLocationUpdates(locationCallback)
         Log.i("LocationLoggingService", "Service destroyed and location updates stopped")
+        heartbeatJob?.cancel()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -262,7 +273,7 @@ class LocationLoggingService : Service() {
                         session_id = 0,
                         client_id = 0
                     )
-                    val endpoint = "https://api.brisk-credit.com/endpoints/activity_logs.php"
+                    val endpoint = "https://api.brisk-credit.net/endpoints/activity_logs.php"
                     val posted = ActivityEventSyncManager.isInternetAvailable(this@LocationLoggingService) &&
                         ActivityEventSyncManager.postEventOnline(event, endpoint, this@LocationLoggingService)
                     if (!posted) {
@@ -270,6 +281,45 @@ class LocationLoggingService : Service() {
                     }
                 }
                 waitingEventPosted = true
+            }
+        }
+    }
+
+    private fun startHeartbeat() {
+        heartbeatJob?.cancel()
+        heartbeatJob = GlobalScope.launch(Dispatchers.IO) {
+            val jsonMedia = "application/json; charset=utf-8".toMediaType()
+            while (isActive) {
+                try {
+                    val userId = SharedPrefsUtils.getUserIdFromPrefs(this@LocationLoggingService)
+                    if (userId.isNotBlank()) {
+                        val bodyJson = "{" +
+                                "\"user_id\":${userId}" +
+                                "}"
+                        val requestBuilder = Request.Builder()
+                            .url(heartbeatEndpoint)
+                            .post(bodyJson.toRequestBody(jsonMedia))
+
+                        // Attach JWT if available
+                        val token = SharedPrefsUtils.getJwtToken(this@LocationLoggingService)
+                        if (!token.isNullOrBlank()) {
+                            requestBuilder.addHeader("Authorization", "Bearer $token")
+                        }
+
+                        val request = requestBuilder.build()
+                        client.newCall(request).execute().use { response ->
+                            if (!response.isSuccessful) {
+                                Log.w("Heartbeat", "Heartbeat failed: HTTP ${'$'}{response.code}")
+                            } else {
+                                Log.d("Heartbeat", "Heartbeat OK")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w("Heartbeat", "Heartbeat error: ${'$'}{e.message}")
+                } finally {
+                    delay(60_000) // 60 seconds
+                }
             }
         }
     }

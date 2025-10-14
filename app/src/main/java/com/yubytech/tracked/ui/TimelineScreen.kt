@@ -638,10 +638,10 @@ fun TimelineStepModernApi(event: UserActivityEvent, isLast: Boolean, timeline: L
                 val calculatedMinutes = duration.toMinutes()
                 
                 // Debug: Add some logging to see what's happening
-                println("Checkout time: ${event.event_time}")
-                println("Checkin time: ${checkin.event_time}")
-                println("Calculated minutes: $calculatedMinutes")
-                
+//                println("Checkout time: ${event.event_time}")
+//                println("Checkin time: ${checkin.event_time}")
+//                println("Calculated minutes: $calculatedMinutes")
+
                 calculatedMinutes
             } catch (e: Exception) { 
                 println("Error calculating duration: ${e.message}")

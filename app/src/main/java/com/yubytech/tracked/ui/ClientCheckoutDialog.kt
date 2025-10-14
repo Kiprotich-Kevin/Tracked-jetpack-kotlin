@@ -65,6 +65,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.yubytech.tracked.local.ActivityEvent
+import com.yubytech.tracked.local.ActivityEventSyncManager
+import com.yubytech.tracked.local.AppDatabase
 import com.yubytech.tracked.ui.CheckInViewModel
 
 
@@ -149,25 +152,44 @@ fun ClientCheckoutDialog(client: Client, onCancel: () -> Unit, onSubmit: (List<F
         color = Color.White // Explicitly set background to white
     ) {
         if (isCancelling) {
-                // Show spinner + message for 3s
-                LaunchedEffect(Unit) {
-                    kotlinx.coroutines.delay(3000)
+            LaunchedEffect(Unit) {
+                val now = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+                    .format(java.util.Date())
+                val clientId = CheckInPrefs.getClientDbId(context)
+                val userId = SharedPrefsUtils.getUserIdFromPrefs(context)
 
-                    // ✅ Clear check-in (your existing logic)
-                    CheckInPrefs.clearCheckIn(context)
+                val cancelEvent = ActivityEvent(
+                    user_id = userId.toIntOrNull() ?: -1,
+                    event_type = "checkin_cancelled",
+                    event_time = now,
+                    lat =  0.0,
+                    lng =  0.0,
+                    details = "Checkin cancelled",
+                    session_id = 0,
+                    client_id = clientId ?: 0
+                )
 
-                    // ✅ Refresh UI if you need (call your loadStatus() here if defined)
-                    // loadStatus()
-                    // just call the same reset logic
-                    checkInViewModel.clearUiState()
-
-                    // ✅ Reload status so the button state updates
-                    checkInViewModel.loadStatus()
-                    // ✅ Close dialog
-                    onCancel()
+                // 🚀 Try post first, fallback to local DB if offline
+                val endpoint = "https://api.brisk-credit.net/endpoints/activity_logs.php"
+                val posted = with(kotlinx.coroutines.Dispatchers.IO) {
+                    ActivityEventSyncManager.isInternetAvailable(context) &&
+                            ActivityEventSyncManager.postEventOnline(cancelEvent, endpoint, context)
                 }
 
-                Column(
+                if (!posted) {
+                    val db = AppDatabase.getDatabase(context)
+                    db.activityEventDao().insert(cancelEvent)
+                }
+
+                // ✅ Only clear after post attempt completes
+                CheckInPrefs.clearCheckIn(context)
+                checkInViewModel.clearUiState()
+                checkInViewModel.loadStatus()
+                onCancel()
+            }
+
+
+            Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp),

@@ -49,4 +49,51 @@ object RetrofitInstance {
     fun getWeatherApiWithAuth(context: Context): WeatherApi {
         return getInstance(context).create(WeatherApi::class.java)
     }
+
+    fun getTasksApiWithAuth(context: Context): TasksApi {
+        val clientBuilder = OkHttpClient.Builder()
+
+        // Add JWT token interceptor
+        clientBuilder.addInterceptor { chain ->
+            val jwtToken = SharedPrefsUtils.getJwtToken(context)
+            val request = chain.request()
+
+            val newRequest = if (jwtToken != null) {
+                request.newBuilder()
+                    .addHeader("Authorization", "Bearer $jwtToken")
+                    .build()
+            } else {
+                request
+            }
+
+            chain.proceed(newRequest)
+        }
+
+        return Retrofit.Builder()
+            .baseUrl("https://api.brisk-credit.net/endpoints/") // tasks API base URL
+            .client(clientBuilder.build())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(TasksApi::class.java)
+    }
+
+    fun getPairsApiWithAuth(context: Context): PairsApi {
+        val clientBuilder = OkHttpClient.Builder()
+
+        clientBuilder.addInterceptor { chain ->
+            val jwtToken = SharedPrefsUtils.getJwtToken(context)
+            val request = chain.request()
+            val newRequest = if (jwtToken != null) {
+                request.newBuilder().addHeader("Authorization", "Bearer $jwtToken").build()
+            } else request
+            chain.proceed(newRequest)
+        }
+
+        return Retrofit.Builder()
+            .baseUrl("https://api.brisk-credit.com/endpoints/")
+            .client(clientBuilder.build())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(PairsApi::class.java)
+    }
 }

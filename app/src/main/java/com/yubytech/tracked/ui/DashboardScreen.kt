@@ -173,9 +173,10 @@ class DashboardActivityViewModel : ViewModel() {
 fun DashboardScreen(
     onActivityClick: () -> Unit = {},
     onTrackingClick: () -> Unit = {},
-    onAttendanceClick: () -> Unit = {},
+    onTasksClick: () -> Unit = {},
     onLogout: () -> Unit = {},
-    onTimelineClick: () -> Unit = {}
+    onTimelineClick: () -> Unit = {},
+    onPairingClick: () -> Unit = {}
 ) {
     val checkInViewModel: CheckInViewModel = viewModel()
     val uiState by checkInViewModel.uiState.collectAsState()
@@ -427,7 +428,7 @@ fun DashboardScreen(
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(Color.LightGray)
-                        .clickable { showSessionExpiredSheet.value = true },
+                        .clickable { showAttendanceSheet = true },
                     contentAlignment = Alignment.Center
                 ) {
                     val userName = SharedPrefsUtils.getUserNameFromPrefs(context)
@@ -439,7 +440,7 @@ fun DashboardScreen(
             // Main Cards
             Column {
                 Row(Modifier.fillMaxWidth()) {
-                    DashboardCard(title = "Attendance", subtitle = "Login , checkin and check out", icon = android.R.drawable.ic_menu_agenda, modifier = Modifier.weight(1f), onClick = { showAttendanceSheet = true })
+                    DashboardCard(title = "Pairing", subtitle = "Login , checkin and check out", icon = android.R.drawable.ic_menu_agenda, modifier = Modifier.weight(1f), onClick = { onPairingClick() })
                     Spacer(modifier = Modifier.width(12.dp))
                     DashboardCard(title = "Tracking", subtitle = "Check out you and your staff", icon = android.R.drawable.ic_menu_mylocation, modifier = Modifier.weight(1f), onClick = onTrackingClick)
                 }
@@ -447,7 +448,7 @@ fun DashboardScreen(
                 Row(Modifier.fillMaxWidth()) {
                     DashboardCard(title = "Activity", subtitle = "Check out your activity", icon = android.R.drawable.ic_menu_recent_history, modifier = Modifier.weight(1f), onClick = onActivityClick)
                     Spacer(modifier = Modifier.width(12.dp))
-                    DashboardCard(title = "Tasks", subtitle = "View and manage your tasks", icon = android.R.drawable.ic_menu_edit, modifier = Modifier.weight(1f), onClick = { showTasksComingSoonSheet = true } )
+                    DashboardCard(title = "Tasks", subtitle = "View and manage your tasks", icon = android.R.drawable.ic_menu_edit, modifier = Modifier.weight(1f), onClick = onTasksClick)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
